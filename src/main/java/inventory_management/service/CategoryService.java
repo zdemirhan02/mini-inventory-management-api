@@ -2,6 +2,7 @@ package inventory_management.service;
 
 import inventory_management.dto.CategoryRequest;
 import inventory_management.dto.CategoryResponse;
+import inventory_management.exception.CategoryAlreadyExistsException;
 import inventory_management.exception.CategoryNotEmptyException;
 import inventory_management.exception.ResourceNotFoundException;
 import inventory_management.model.Category;
@@ -33,6 +34,9 @@ public class CategoryService {
     }
 
     public CategoryResponse createCategory(CategoryRequest request) {
+        if (categoryRepository.existsByName(request.getName())) {
+            throw new CategoryAlreadyExistsException("Category with name '" + request.getName() + "' already exists.");
+        }
         Category category = new Category(request.getName());
         Category saved = categoryRepository.save(category);
         return new CategoryResponse(saved.getId(), saved.getName());

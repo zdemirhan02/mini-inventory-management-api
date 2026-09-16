@@ -28,8 +28,8 @@ public class ProductService {
         this.categoryRepository = categoryRepository;
     }
 
-    // Dinamik isim ve kategori filtresi destekleyen paged metodumuz
-    public Page<ProductResponse> getAllProductsPaged(String name, Long categoryId, Pageable pageable) {
+    // İsim, kategori ve stok miktar aralığını destekleyen paged metodumuz
+    public Page<ProductResponse> getAllProductsPaged(String name, Long categoryId, Integer minStock, Integer maxStock, Pageable pageable) {
         Specification<Product> spec = (root, query, cb) -> {
             List<Predicate> predicates = new ArrayList<>();
 
@@ -39,6 +39,14 @@ public class ProductService {
 
             if (categoryId != null) {
                 predicates.add(cb.equal(root.get("category").get("id"), categoryId));
+            }
+
+            if (minStock != null) {
+                predicates.add(cb.greaterThanOrEqualTo(root.get("stockQuantity"), minStock));
+            }
+
+            if (maxStock != null) {
+                predicates.add(cb.lessThanOrEqualTo(root.get("stockQuantity"), maxStock));
             }
 
             return cb.and(predicates.toArray(new Predicate[0]));

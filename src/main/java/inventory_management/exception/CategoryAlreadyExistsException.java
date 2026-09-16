@@ -1,4 +1,7 @@
-package inventory_management.exception;
+package com.example.inventory.exception;
 
-public class CategoryAlreadyExistsException {
+public class CategoryAlreadyExistsException extends RuntimeException {
+    public CategoryAlreadyExistsException(String message) {
+        super(message);
+    }
 }
