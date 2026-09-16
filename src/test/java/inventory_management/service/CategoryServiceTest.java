@@ -3,6 +3,7 @@ package inventory_management.service;
 import inventory_management.dto.CategoryRequest;
 import inventory_management.dto.CategoryResponse;
 import inventory_management.exception.CategoryAlreadyExistsException;
+import inventory_management.exception.ResourceNotFoundException;
 import inventory_management.model.Category;
 import inventory_management.repository.CategoryRepository;
 import org.junit.jupiter.api.BeforeEach;
@@ -32,30 +33,53 @@ class CategoryServiceTest {
 
     @BeforeEach
     void setUp() {
-        category = new Category("Elektronik");
-        categoryRequest = new CategoryRequest("Elektronik");
+        category = new Category();
+        category.setId(1L);
+        category.setName("Electronics");
+
+        categoryRequest = new CategoryRequest();
+        categoryRequest.setName("Electronics");
     }
 
     @Test
     void createCategory_Success() {
-        when(categoryRepository.existsByName("Elektronik")).thenReturn(false);
+        when(categoryRepository.existsByName("Electronics")).thenReturn(false);
         when(categoryRepository.save(any(Category.class))).thenReturn(category);
 
-        CategoryResponse response = categoryService.createCategory(categoryRequest);
+        CategoryResponse result = categoryService.createCategory(categoryRequest);
 
-        assertNotNull(response);
-        assertEquals("Elektronik", response.getName());
+        assertNotNull(result);
+        assertEquals("Electronics", result.getName());
         verify(categoryRepository, times(1)).save(any(Category.class));
     }
 
     @Test
-    void createCategory_ThrowsCategoryAlreadyExistsException() {
-        when(categoryRepository.existsByName("Elektronik")).thenReturn(true);
+    void createCategory_ThrowsException_WhenCategoryExists() {
+        when(categoryRepository.existsByName("Electronics")).thenReturn(true);
 
         assertThrows(CategoryAlreadyExistsException.class, () -> {
             categoryService.createCategory(categoryRequest);
         });
 
         verify(categoryRepository, never()).save(any(Category.class));
+    }
+
+    @Test
+    void getCategoryById_Success() {
+        when(categoryRepository.findById(1L)).thenReturn(Optional.of(category));
+
+        CategoryResponse result = categoryService.getCategoryById(1L);
+
+        assertNotNull(result);
+        assertEquals(1L, result.getId());
+    }
+
+    @Test
+    void getCategoryById_ThrowsException_WhenNotFound() {
+        when(categoryRepository.findById(1L)).thenReturn(Optional.empty());
+
+        assertThrows(ResourceNotFoundException.class, () -> {
+            categoryService.getCategoryById(1L);
+        });
     }
 }
