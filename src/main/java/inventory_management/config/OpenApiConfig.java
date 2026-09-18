@@ -12,8 +12,8 @@ public class OpenApiConfig {
     public OpenAPI customOpenAPI() {
         return new OpenAPI()
                 .info(new Info()
-                        .title("Mini Inventory Management API")
-                        .version("1.0")
-                        .description("Envanter Yönetimi REST API Dokümantasyonu"));
+                        .title("Inventory Management API")
+                        .version("1.0.0")
+                        .description("Envanter Yönetim Sistemi REST API Dokümantasyonu"));
     }
 }
