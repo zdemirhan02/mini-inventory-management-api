@@ -1,9 +1,9 @@
 package inventory_management.dto;
 
+import jakarta.validation.constraints.DecimalMin;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
-import jakarta.validation.constraints.Positive;
 
 public class ProductRequest {
 
@@ -13,18 +13,17 @@ public class ProductRequest {
     private String description;
 
     @NotNull(message = "Fiyat boş olamaz")
-    @Positive(message = "Fiyat 0'dan büyük olmalıdır")
+    @DecimalMin(value = "0.0", inclusive = true, message = "Fiyat negatif olamaz")
     private Double price;
 
     @NotNull(message = "Stok miktarı boş olamaz")
     @Min(value = 0, message = "Stok miktarı negatif olamaz")
     private Integer stockQuantity;
 
-    @NotNull(message = "Kategori ID boş olamaz")
+    @NotNull(message = "Kategori seçilmelidir")
     private Long categoryId;
 
-    public ProductRequest() {
-    }
+    public ProductRequest() {}
 
     public ProductRequest(String name, String description, Double price, Integer stockQuantity, Long categoryId) {
         this.name = name;
@@ -34,43 +33,18 @@ public class ProductRequest {
         this.categoryId = categoryId;
     }
 
-    public String getName() {
-        return name;
-    }
+    public String getName() { return name; }
+    public void setName(String name) { this.name = name; }
 
-    public void setName(String name) {
-        this.name = name;
-    }
+    public String getDescription() { return description; }
+    public void setDescription(String description) { this.description = description; }
 
-    public String getDescription() {
-        return description;
-    }
+    public Double getPrice() { return price; }
+    public void setPrice(Double price) { this.price = price; }
 
-    public void setDescription(String description) {
-        this.description = description;
-    }
+    public Integer getStockQuantity() { return stockQuantity; }
+    public void setStockQuantity(Integer stockQuantity) { this.stockQuantity = stockQuantity; }
 
-    public Double getPrice() {
-        return price;
-    }
-
-    public void setPrice(Double price) {
-        this.price = price;
-    }
-
-    public Integer getStockQuantity() {
-        return stockQuantity;
-    }
-
-    public void setStockQuantity(Integer stockQuantity) {
-        this.stockQuantity = stockQuantity;
-    }
-
-    public Long getCategoryId() {
-        return categoryId;
-    }
-
-    public void setCategoryId(Long categoryId) {
-        this.categoryId = categoryId;
-    }
+    public Long getCategoryId() { return categoryId; }
+    public void setCategoryId(Long categoryId) { this.categoryId = categoryId; }
 }

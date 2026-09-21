@@ -7,13 +7,11 @@ import inventory_management.model.Category;
 import inventory_management.model.Product;
 import inventory_management.repository.CategoryRepository;
 import inventory_management.repository.ProductRepository;
-import jakarta.persistence.criteria.Predicate;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -29,36 +27,27 @@ public class ProductServiceImpl implements ProductService {
     }
 
     @Override
-    public Page<ProductResponse> getAllProductsPaged(String name, Long categoryId, Integer minStock, Integer maxStock, Pageable pageable) {
-        Specification<Product> spec = (root, query, cb) -> {
-            List<Predicate> predicates = new ArrayList<>();
-
-            if (name != null && !name.trim().isEmpty()) {
-                predicates.add(cb.like(cb.lower(root.get("name")), "%" + name.toLowerCase() + "%"));
-            }
-
-            if (categoryId != null) {
-                predicates.add(cb.equal(root.get("category").get("id"), categoryId));
-            }
-
-            if (minStock != null) {
-                predicates.add(cb.greaterThanOrEqualTo(root.get("stockQuantity"), minStock));
-            }
-
-            if (maxStock != null) {
-                predicates.add(cb.lessThanOrEqualTo(root.get("stockQuantity"), maxStock));
-            }
-
-            return cb.and(predicates.toArray(new Predicate[0]));
-        };
-
-        return productRepository.findAll(spec, pageable)
+    public Page<ProductResponse> getAllProducts(Pageable pageable) {
+        return productRepository.findAll(pageable)
                 .map(this::mapToResponse);
     }
 
     @Override
-    public List<ProductResponse> getAllProducts() {
-        return productRepository.findAll().stream()
+    public Page<ProductResponse> searchProductsByName(String name, Pageable pageable) {
+        return productRepository.findByNameContainingIgnoreCase(name, pageable)
+                .map(this::mapToResponse);
+    }
+
+    @Override
+    public List<ProductResponse> getInStockProducts() {
+        return productRepository.findByStockQuantityGreaterThan(0).stream()
+                .map(this::mapToResponse)
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    public List<ProductResponse> getProductsByCategory(Long categoryId) {
+        return productRepository.findByCategoryId(categoryId).stream()
                 .map(this::mapToResponse)
                 .collect(Collectors.toList());
     }
@@ -71,33 +60,25 @@ public class ProductServiceImpl implements ProductService {
     }
 
     @Override
-    public List<ProductResponse> getProductsByCategoryId(Long categoryId) {
-        if (!categoryRepository.existsById(categoryId)) {
-            throw new ResourceNotFoundException("Kategori bulunamadı: " + categoryId);
-        }
-        return productRepository.findByCategoryId(categoryId).stream()
-                .map(this::mapToResponse)
-                .collect(Collectors.toList());
-    }
-
-    @Override
+    @Transactional
     public ProductResponse createProduct(ProductRequest request) {
         Category category = categoryRepository.findById(request.getCategoryId())
                 .orElseThrow(() -> new ResourceNotFoundException("Kategori bulunamadı: " + request.getCategoryId()));
 
         Product product = new Product(
-                request.getName(),
+                request.getName().trim(),
                 request.getDescription(),
                 request.getPrice(),
                 request.getStockQuantity(),
                 category
         );
 
-        Product saved = productRepository.save(product);
-        return mapToResponse(saved);
+        Product savedProduct = productRepository.save(product);
+        return mapToResponse(savedProduct);
     }
 
     @Override
+    @Transactional
     public ProductResponse updateProduct(Long id, ProductRequest request) {
         Product product = productRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Ürün bulunamadı: " + id));
@@ -105,22 +86,22 @@ public class ProductServiceImpl implements ProductService {
         Category category = categoryRepository.findById(request.getCategoryId())
                 .orElseThrow(() -> new ResourceNotFoundException("Kategori bulunamadı: " + request.getCategoryId()));
 
-        product.setName(request.getName());
+        product.setName(request.getName().trim());
         product.setDescription(request.getDescription());
         product.setPrice(request.getPrice());
         product.setStockQuantity(request.getStockQuantity());
         product.setCategory(category);
 
-        Product updated = productRepository.save(product);
-        return mapToResponse(updated);
+        Product updatedProduct = productRepository.save(product);
+        return mapToResponse(updatedProduct);
     }
 
     @Override
+    @Transactional
     public void deleteProduct(Long id) {
-        if (!productRepository.existsById(id)) {
-            throw new ResourceNotFoundException("Ürün bulunamadı: " + id);
-        }
-        productRepository.deleteById(id);
+        Product product = productRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Ürün bulunamadı: " + id));
+        productRepository.delete(product);
     }
 
     private ProductResponse mapToResponse(Product product) {

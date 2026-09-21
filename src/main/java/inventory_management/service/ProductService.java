@@ -8,10 +8,11 @@ import org.springframework.data.domain.Pageable;
 import java.util.List;
 
 public interface ProductService {
-    Page<ProductResponse> getAllProductsPaged(String name, Long categoryId, Integer minStock, Integer maxStock, Pageable pageable);
-    List<ProductResponse> getAllProducts();
+    Page<ProductResponse> getAllProducts(Pageable pageable);
+    Page<ProductResponse> searchProductsByName(String name, Pageable pageable);
+    List<ProductResponse> getInStockProducts();
+    List<ProductResponse> getProductsByCategory(Long categoryId);
     ProductResponse getProductById(Long id);
-    List<ProductResponse> getProductsByCategoryId(Long categoryId);
     ProductResponse createProduct(ProductRequest request);
     ProductResponse updateProduct(Long id, ProductRequest request);
     void deleteProduct(Long id);

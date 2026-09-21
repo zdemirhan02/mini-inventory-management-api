@@ -3,6 +3,11 @@ package inventory_management.controller;
 import inventory_management.dto.ProductRequest;
 import inventory_management.dto.ProductResponse;
 import inventory_management.service.ProductService;
+import jakarta.validation.Valid;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -20,8 +25,26 @@ public class ProductController {
     }
 
     @GetMapping
-    public ResponseEntity<List<ProductResponse>> getAllProducts() {
-        return ResponseEntity.ok(productService.getAllProducts());
+    public ResponseEntity<Page<ProductResponse>> getAllProducts(
+            @PageableDefault(size = 10, sort = "name", direction = Sort.Direction.ASC) Pageable pageable) {
+        return ResponseEntity.ok(productService.getAllProducts(pageable));
+    }
+
+    @GetMapping("/search")
+    public ResponseEntity<Page<ProductResponse>> searchProducts(
+            @RequestParam String name,
+            @PageableDefault(size = 10, sort = "name", direction = Sort.Direction.ASC) Pageable pageable) {
+        return ResponseEntity.ok(productService.searchProductsByName(name, pageable));
+    }
+
+    @GetMapping("/in-stock")
+    public ResponseEntity<List<ProductResponse>> getInStockProducts() {
+        return ResponseEntity.ok(productService.getInStockProducts());
+    }
+
+    @GetMapping("/category/{categoryId}")
+    public ResponseEntity<List<ProductResponse>> getProductsByCategory(@PathVariable Long categoryId) {
+        return ResponseEntity.ok(productService.getProductsByCategory(categoryId));
     }
 
     @GetMapping("/{id}")
@@ -30,8 +53,13 @@ public class ProductController {
     }
 
     @PostMapping
-    public ResponseEntity<ProductResponse> createProduct(@RequestBody ProductRequest productRequest) {
-        return ResponseEntity.status(HttpStatus.CREATED).body(productService.createProduct(productRequest));
+    public ResponseEntity<ProductResponse> createProduct(@Valid @RequestBody ProductRequest request) {
+        return new ResponseEntity<>(productService.createProduct(request), HttpStatus.CREATED);
+    }
+
+    @PutMapping("/{id}")
+    public ResponseEntity<ProductResponse> updateProduct(@PathVariable Long id, @Valid @RequestBody ProductRequest request) {
+        return ResponseEntity.ok(productService.updateProduct(id, request));
     }
 
     @DeleteMapping("/{id}")
