@@ -34,10 +34,10 @@ public class CategoryService {
     }
 
     public CategoryResponse createCategory(CategoryRequest request) {
-        if (categoryRepository.existsByName(request.getName())) {
+        if (categoryRepository.existsByName(request.getName().trim())) {
             throw new CategoryAlreadyExistsException("Category with name '" + request.getName() + "' already exists.");
         }
-        Category category = new Category(request.getName());
+        Category category = new Category(request.getName().trim());
         Category saved = categoryRepository.save(category);
         return new CategoryResponse(saved.getId(), saved.getName());
     }
@@ -45,7 +45,13 @@ public class CategoryService {
     public CategoryResponse updateCategory(Long id, CategoryRequest request) {
         Category category = categoryRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Kategori bulunamadı: " + id));
-        category.setName(request.getName());
+
+        // Güncellenen isim başka bir kategoriye aitse hata fırlat
+        if (!category.getName().equalsIgnoreCase(request.getName().trim()) && categoryRepository.existsByName(request.getName().trim())) {
+            throw new CategoryAlreadyExistsException("Category with name '" + request.getName() + "' already exists.");
+        }
+
+        category.setName(request.getName().trim());
         Category updated = categoryRepository.save(category);
         return new CategoryResponse(updated.getId(), updated.getName());
     }
@@ -54,7 +60,7 @@ public class CategoryService {
         Category category = categoryRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Kategori bulunamadı: " + id));
 
-        if (!category.getProducts().isEmpty()) {
+        if (category.getProducts() != null && !category.getProducts().isEmpty()) {
             throw new CategoryNotEmptyException("İçinde ürün bulunan kategori silinemez!");
         }
 
