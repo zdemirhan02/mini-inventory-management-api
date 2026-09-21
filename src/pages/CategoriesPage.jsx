@@ -1,68 +1,99 @@
-import React, { useState, useEffect } from 'react';
-import api from '../api/axios';
+import React, { useEffect, useState } from 'react';
+import { getCategories, createCategory, deleteCategory } from '../api/categoryService';
+import { Plus, Trash2, FolderTree } from 'lucide-react';
 
-export default function CategoriesPage() {
+const CategoriesPage = () => {
     const [categories, setCategories] = useState([]);
     const [name, setName] = useState('');
+    const [loading, setLoading] = useState(false);
+
+    const fetchCategories = async () => {
+        setLoading(true);
+        try {
+            const res = await getCategories();
+            setCategories(res.data || []);
+        } catch (err) {
+            console.error('Kategoriler yüklenirken hata oluştu:', err);
+        } finally {
+            setLoading(false);
+        }
+    };
 
     useEffect(() => {
         fetchCategories();
     }, []);
 
-    const fetchCategories = async () => {
+    const handleCreate = async (e) => {
+        e.preventDefault();
+        if (!name.trim()) return;
+
         try {
-            const response = await api.get('/categories');
-            setCategories(response.data);
-        } catch (error) {
-            console.error('Kategoriler çekilemedi:', error);
+            await createCategory({ name });
+            setName('');
+            fetchCategories();
+        } catch (err) {
+            alert('Kategori eklenirken hata oluştu!');
         }
     };
 
-    const handleAddCategory = async (e) => {
-        e.preventDefault();
-        if (!name.trim()) return;
-        try {
-            await api.post('/categories', { name });
-            setName('');
-            fetchCategories();
-        } catch (error) {
-            console.error('Kategori eklenemedi:', error);
+    const handleDelete = async (id) => {
+        if (window.confirm('Bu kategoriyi silmek istediğinize emin misiniz?')) {
+            try {
+                await deleteCategory(id);
+                fetchCategories();
+            } catch (err) {
+                alert('Kategori silinemedi!');
+            }
         }
     };
 
     return (
-        <div className="space-y-6">
-            <form onSubmit={handleAddCategory} className="flex gap-4 bg-white p-4 rounded-lg shadow">
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+            <h1 className="text-2xl font-bold text-gray-800 mb-6 flex items-center gap-2">
+                <FolderTree className="w-7 h-7 text-indigo-600" /> Kategori Yönetimi
+            </h1>
+
+            {/* Kategori Ekleme Formu */}
+            <form onSubmit={handleCreate} className="bg-white p-4 rounded-lg shadow mb-6 flex gap-4">
                 <input
                     type="text"
-                    placeholder="Kategori Adı"
+                    placeholder="Yeni kategori adı..."
+                    className="flex-1 px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
                     value={name}
                     onChange={(e) => setName(e.target.value)}
-                    className="border p-2 rounded w-full"
                 />
-                <button type="submit" className="bg-blue-600 text-white px-4 py-2 rounded font-medium hover:bg-blue-700">
-                    Ekle
+                <button
+                    type="submit"
+                    className="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg flex items-center gap-2 transition"
+                >
+                    <Plus className="w-4 h-4" /> Ekle
                 </button>
             </form>
 
+            {/* Kategori Listesi */}
             <div className="bg-white rounded-lg shadow overflow-hidden">
-                <table className="w-full text-left">
-                    <thead className="bg-slate-100">
-                    <tr>
-                        <th className="p-4">ID</th>
-                        <th className="p-4">Kategori Adı</th>
-                    </tr>
-                    </thead>
-                    <tbody>
-                    {categories.map((cat) => (
-                        <tr key={cat.id} className="border-t">
-                            <td className="p-4">{cat.id}</td>
-                            <td className="p-4">{cat.name}</td>
-                        </tr>
-                    ))}
-                    </tbody>
-                </table>
+                <ul className="divide-y divide-gray-200">
+                    {loading ? (
+                        <li className="p-4 text-center text-gray-500">Yükleniyor...</li>
+                    ) : categories.length === 0 ? (
+                        <li className="p-4 text-center text-gray-500">Henüz kategori bulunmuyor.</li>
+                    ) : (
+                        categories.map((cat) => (
+                            <li key={cat.id} className="p-4 flex justify-between items-center hover:bg-gray-50">
+                                <span className="font-medium text-gray-800">{cat.name}</span>
+                                <button
+                                    onClick={() => handleDelete(cat.id)}
+                                    className="text-red-600 hover:text-red-900 transition"
+                                >
+                                    <Trash2 className="w-5 h-5" />
+                                </button>
+                            </li>
+                        ))
+                    )}
+                </ul>
             </div>
         </div>
     );
-}
+};
+
+export default CategoriesPage;
