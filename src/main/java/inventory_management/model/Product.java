@@ -1,6 +1,7 @@
 package inventory_management.model;
 
 import jakarta.persistence.*;
+import java.math.BigDecimal;
 
 @Entity
 @Table(name = "products")
@@ -16,7 +17,7 @@ public class Product {
     private String description;
 
     @Column(nullable = false)
-    private Double price;
+    private BigDecimal price;
 
     @Column(nullable = false)
     private Integer stockQuantity;
@@ -27,7 +28,7 @@ public class Product {
 
     public Product() {}
 
-    public Product(String name, String description, Double price, Integer stockQuantity, Category category) {
+    public Product(String name, String description, BigDecimal price, Integer stockQuantity, Category category) {
         this.name = name;
         this.description = description;
         this.price = price;
@@ -44,8 +45,8 @@ public class Product {
     public String getDescription() { return description; }
     public void setDescription(String description) { this.description = description; }
 
-    public Double getPrice() { return price; }
-    public void setPrice(Double price) { this.price = price; }
+    public BigDecimal getPrice() { return price; }
+    public void setPrice(BigDecimal price) { this.price = price; }
 
     public Integer getStockQuantity() { return stockQuantity; }
     public void setStockQuantity(Integer stockQuantity) { this.stockQuantity = stockQuantity; }

@@ -1,5 +1,6 @@
 package inventory_management.service;
 
+import inventory_management.dto.CategoryResponse;
 import inventory_management.dto.ProductRequest;
 import inventory_management.dto.ProductResponse;
 import inventory_management.exception.ResourceNotFoundException;
@@ -27,35 +28,43 @@ public class ProductServiceImpl implements ProductService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public Page<ProductResponse> getAllProducts(Pageable pageable) {
-        return productRepository.findAll(pageable)
-                .map(this::mapToResponse);
+        return productRepository.findAll(pageable).map(this::mapToResponse);
     }
 
     @Override
+    @Transactional(readOnly = true)
     public Page<ProductResponse> searchProductsByName(String name, Pageable pageable) {
-        return productRepository.findByNameContainingIgnoreCase(name, pageable)
-                .map(this::mapToResponse);
+        return productRepository.findByNameContainingIgnoreCase(name, pageable).map(this::mapToResponse);
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<ProductResponse> getInStockProducts() {
-        return productRepository.findByStockQuantityGreaterThan(0).stream()
+        return productRepository.findByStockQuantityGreaterThan(0)
+                .stream()
                 .map(this::mapToResponse)
                 .collect(Collectors.toList());
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<ProductResponse> getProductsByCategory(Long categoryId) {
-        return productRepository.findByCategoryId(categoryId).stream()
+        if (!categoryRepository.existsById(categoryId)) {
+            throw new ResourceNotFoundException("Kategori bulunamadı ID: " + categoryId);
+        }
+        return productRepository.findByCategoryId(categoryId)
+                .stream()
                 .map(this::mapToResponse)
                 .collect(Collectors.toList());
     }
 
     @Override
+    @Transactional(readOnly = true)
     public ProductResponse getProductById(Long id) {
         Product product = productRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Ürün bulunamadı: " + id));
+                .orElseThrow(() -> new ResourceNotFoundException("Ürün bulunamadı ID: " + id));
         return mapToResponse(product);
     }
 
@@ -63,7 +72,7 @@ public class ProductServiceImpl implements ProductService {
     @Transactional
     public ProductResponse createProduct(ProductRequest request) {
         Category category = categoryRepository.findById(request.getCategoryId())
-                .orElseThrow(() -> new ResourceNotFoundException("Kategori bulunamadı: " + request.getCategoryId()));
+                .orElseThrow(() -> new ResourceNotFoundException("Kategori bulunamadı ID: " + request.getCategoryId()));
 
         Product product = new Product(
                 request.getName().trim(),
@@ -81,10 +90,10 @@ public class ProductServiceImpl implements ProductService {
     @Transactional
     public ProductResponse updateProduct(Long id, ProductRequest request) {
         Product product = productRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Ürün bulunamadı: " + id));
+                .orElseThrow(() -> new ResourceNotFoundException("Ürün bulunamadı ID: " + id));
 
         Category category = categoryRepository.findById(request.getCategoryId())
-                .orElseThrow(() -> new ResourceNotFoundException("Kategori bulunamadı: " + request.getCategoryId()));
+                .orElseThrow(() -> new ResourceNotFoundException("Kategori bulunamadı ID: " + request.getCategoryId()));
 
         product.setName(request.getName().trim());
         product.setDescription(request.getDescription());
@@ -100,19 +109,26 @@ public class ProductServiceImpl implements ProductService {
     @Transactional
     public void deleteProduct(Long id) {
         Product product = productRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Ürün bulunamadı: " + id));
+                .orElseThrow(() -> new ResourceNotFoundException("Ürün bulunamadı ID: " + id));
         productRepository.delete(product);
     }
 
     private ProductResponse mapToResponse(Product product) {
+        CategoryResponse categoryResponse = null;
+        if (product.getCategory() != null) {
+            categoryResponse = new CategoryResponse(
+                    product.getCategory().getId(),
+                    product.getCategory().getName()
+            );
+        }
+
         return new ProductResponse(
                 product.getId(),
                 product.getName(),
                 product.getDescription(),
                 product.getPrice(),
                 product.getStockQuantity(),
-                product.getCategory().getId(),
-                product.getCategory().getName()
+                categoryResponse
         );
     }
 }
