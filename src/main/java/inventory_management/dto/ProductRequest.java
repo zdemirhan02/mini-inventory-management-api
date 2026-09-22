@@ -4,6 +4,7 @@ import jakarta.validation.constraints.DecimalMin;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
+import java.math.BigDecimal;
 
 public class ProductRequest {
 
@@ -14,7 +15,7 @@ public class ProductRequest {
 
     @NotNull(message = "Fiyat boş olamaz")
     @DecimalMin(value = "0.0", inclusive = true, message = "Fiyat negatif olamaz")
-    private Double price;
+    private BigDecimal price;
 
     @NotNull(message = "Stok miktarı boş olamaz")
     @Min(value = 0, message = "Stok miktarı negatif olamaz")
@@ -25,7 +26,7 @@ public class ProductRequest {
 
     public ProductRequest() {}
 
-    public ProductRequest(String name, String description, Double price, Integer stockQuantity, Long categoryId) {
+    public ProductRequest(String name, String description, BigDecimal price, Integer stockQuantity, Long categoryId) {
         this.name = name;
         this.description = description;
         this.price = price;
@@ -39,8 +40,8 @@ public class ProductRequest {
     public String getDescription() { return description; }
     public void setDescription(String description) { this.description = description; }
 
-    public Double getPrice() { return price; }
-    public void setPrice(Double price) { this.price = price; }
+    public BigDecimal getPrice() { return price; }
+    public void setPrice(BigDecimal price) { this.price = price; }
 
     public Integer getStockQuantity() { return stockQuantity; }
     public void setStockQuantity(Integer stockQuantity) { this.stockQuantity = stockQuantity; }
