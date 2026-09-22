@@ -7,7 +7,9 @@ import inventory_management.exception.CategoryNotEmptyException;
 import inventory_management.exception.ResourceNotFoundException;
 import inventory_management.model.Category;
 import inventory_management.repository.CategoryRepository;
+import inventory_management.repository.ProductRepository;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -16,54 +18,69 @@ import java.util.stream.Collectors;
 public class CategoryService {
 
     private final CategoryRepository categoryRepository;
+    private final ProductRepository productRepository;
 
-    public CategoryService(CategoryRepository categoryRepository) {
+    public CategoryService(CategoryRepository categoryRepository, ProductRepository productRepository) {
         this.categoryRepository = categoryRepository;
+        this.productRepository = productRepository;
     }
 
     public List<CategoryResponse> getAllCategories() {
         return categoryRepository.findAll().stream()
-                .map(c -> new CategoryResponse(c.getId(), c.getName()))
+                .map(this::mapToResponse)
                 .collect(Collectors.toList());
     }
 
     public CategoryResponse getCategoryById(Long id) {
         Category category = categoryRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Kategori bulunamadı: " + id));
-        return new CategoryResponse(category.getId(), category.getName());
+        return mapToResponse(category);
     }
 
+    @Transactional
     public CategoryResponse createCategory(CategoryRequest request) {
-        if (categoryRepository.existsByName(request.getName().trim())) {
-            throw new CategoryAlreadyExistsException("Category with name '" + request.getName() + "' already exists.");
+        if (categoryRepository.existsByName(request.getName())) {
+            throw new CategoryAlreadyExistsException("Bu isimde bir kategori zaten mevcut: " + request.getName());
         }
-        Category category = new Category(request.getName().trim());
+        Category category = new Category();
+        category.setName(request.getName());
         Category saved = categoryRepository.save(category);
-        return new CategoryResponse(saved.getId(), saved.getName());
+        return mapToResponse(saved);
     }
 
+    @Transactional
     public CategoryResponse updateCategory(Long id, CategoryRequest request) {
         Category category = categoryRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Kategori bulunamadı: " + id));
 
-        // Güncellenen isim başka bir kategoriye aitse hata fırlat
-        if (!category.getName().equalsIgnoreCase(request.getName().trim()) && categoryRepository.existsByName(request.getName().trim())) {
-            throw new CategoryAlreadyExistsException("Category with name '" + request.getName() + "' already exists.");
+        if (!category.getName().equalsIgnoreCase(request.getName()) &&
+                categoryRepository.existsByName(request.getName())) {
+            throw new CategoryAlreadyExistsException("Bu isimde bir kategori zaten mevcut: " + request.getName());
         }
 
-        category.setName(request.getName().trim());
+        category.setName(request.getName());
         Category updated = categoryRepository.save(category);
-        return new CategoryResponse(updated.getId(), updated.getName());
+        return mapToResponse(updated);
     }
 
+    @Transactional
     public void deleteCategory(Long id) {
-        Category category = categoryRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Kategori bulunamadı: " + id));
-
-        if (category.getProducts() != null && !category.getProducts().isEmpty()) {
-            throw new CategoryNotEmptyException("İçinde ürün bulunan kategori silinemez!");
+        if (!categoryRepository.existsById(id)) {
+            throw new ResourceNotFoundException("Kategori bulunamadı: " + id);
         }
 
-        categoryRepository.delete(category);
+        // Zeynep Hanım'ın istediği Lazy loading/N+1 engelleyen doğrudan repository kontrolü:
+        if (productRepository.existsByCategoryId(id)) {
+            throw new CategoryNotEmptyException("İçinde ürün bulunan kategori silinemez.");
+        }
+
+        categoryRepository.deleteById(id);
+    }
+
+    private CategoryResponse mapToResponse(Category category) {
+        CategoryResponse response = new CategoryResponse();
+        response.setId(category.getId());
+        response.setName(category.getName());
+        return response;
     }
 }

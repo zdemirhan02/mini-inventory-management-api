@@ -1,16 +1,25 @@
+# Build & Maven Output
 target/
 !.mvn/wrapper/maven-wrapper.jar
 !**/src/main/**/target/
 !**/src/test/**/target/
 
-### IntelliJ IDEA ###
+# Frontend & Vite Cache (Zeynep Hanım'ın İstediği Temizlik Kuralları)
+node_modules/
+dist/
+.vite/
+.env
+.env.*
+!.env.example
+
+# IntelliJ IDEA
 .idea
 *.iws
 *.iml
 *.ipr
 .idea_modules
 
-### Eclipse ###
+# Eclipse
 .apt_generated
 .classpath
 .factorypath
@@ -19,11 +28,11 @@ target/
 .springBeans
 .sts4-cache
 
-### NetBeans ###
+# NetBeans
 /nbproject/private/
 /build/
 /dist/
 
-### Logs & Temp ###
+# Logs & Temp
 *.log
 *.tmp
