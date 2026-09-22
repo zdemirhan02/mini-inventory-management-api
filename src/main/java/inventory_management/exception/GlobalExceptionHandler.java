@@ -2,6 +2,7 @@ package inventory_management.exception;
 
 import inventory_management.dto.ApiErrorResponse;
 import jakarta.servlet.http.HttpServletRequest;
+import org.springframework.data.mapping.PropertyReferenceException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.FieldError;
@@ -58,19 +59,29 @@ public class GlobalExceptionHandler {
 
         ApiErrorResponse response = new ApiErrorResponse(
                 HttpStatus.BAD_REQUEST.value(),
-                "Validation Failed",
-                request.getRequestURI(),
-                errors
+                "Validation Failed: " + errors,
+                request.getRequestURI()
+        );
+        return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
+    }
+
+    @ExceptionHandler({PropertyReferenceException.class, IllegalArgumentException.class})
+    public ResponseEntity<ApiErrorResponse> handleInvalidSortingAndPagination(
+            Exception ex, HttpServletRequest request) {
+        ApiErrorResponse response = new ApiErrorResponse(
+                HttpStatus.BAD_REQUEST.value(),
+                "Geçersiz sayfalama veya sıralama parametresi. İzin verilen sıralama alanları: id, name, price, stockQuantity",
+                request.getRequestURI()
         );
         return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
     }
 
     @ExceptionHandler(Exception.class)
-    public ResponseEntity<ApiErrorResponse> handleGeneralException(
+    public ResponseEntity<ApiErrorResponse> handleUnexpected(
             Exception ex, HttpServletRequest request) {
         ApiErrorResponse response = new ApiErrorResponse(
                 HttpStatus.INTERNAL_SERVER_ERROR.value(),
-                "An unexpected error occurred",
+                "Beklenmeyen bir hata oluştu.",
                 request.getRequestURI()
         );
         return new ResponseEntity<>(response, HttpStatus.INTERNAL_SERVER_ERROR);
