@@ -12,8 +12,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
-
 @RestController
 @RequestMapping("/api/products")
 public class ProductController {
@@ -38,13 +36,16 @@ public class ProductController {
     }
 
     @GetMapping("/in-stock")
-    public ResponseEntity<List<ProductResponse>> getInStockProducts() {
-        return ResponseEntity.ok(productService.getInStockProducts());
+    public ResponseEntity<Page<ProductResponse>> getInStockProducts(
+            @PageableDefault(size = 10, sort = "name", direction = Sort.Direction.ASC) Pageable pageable) {
+        return ResponseEntity.ok(productService.getInStockProducts(pageable));
     }
 
     @GetMapping("/category/{categoryId}")
-    public ResponseEntity<List<ProductResponse>> getProductsByCategory(@PathVariable Long categoryId) {
-        return ResponseEntity.ok(productService.getProductsByCategory(categoryId));
+    public ResponseEntity<Page<ProductResponse>> getProductsByCategory(
+            @PathVariable Long categoryId,
+            @PageableDefault(size = 10, sort = "name", direction = Sort.Direction.ASC) Pageable pageable) {
+        return ResponseEntity.ok(productService.getProductsByCategory(categoryId, pageable));
     }
 
     @GetMapping("/{id}")

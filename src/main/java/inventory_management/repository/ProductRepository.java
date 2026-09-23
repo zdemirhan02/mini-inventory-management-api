@@ -7,8 +7,6 @@ import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
-import java.util.List;
-
 @Repository
 public interface ProductRepository extends JpaRepository<Product, Long> {
 
@@ -16,10 +14,10 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
     Page<Product> findByNameContainingIgnoreCase(String name, Pageable pageable);
 
     @EntityGraph(attributePaths = {"category"})
-    List<Product> findByStockQuantityGreaterThan(Integer stockQuantity);
+    Page<Product> findByStockQuantityGreaterThan(Integer stockQuantity, Pageable pageable);
 
     @EntityGraph(attributePaths = {"category"})
-    List<Product> findByCategoryId(Long categoryId);
+    Page<Product> findByCategoryId(Long categoryId, Pageable pageable);
 
     // Kategori silinirken N+1 yapmadan hızlı stok/ürün varlık kontrolü için:
     boolean existsByCategoryId(Long categoryId);

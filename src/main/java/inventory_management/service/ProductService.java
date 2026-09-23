@@ -5,13 +5,11 @@ import inventory_management.dto.ProductResponse;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
-import java.util.List;
-
 public interface ProductService {
     Page<ProductResponse> getAllProducts(Pageable pageable);
     Page<ProductResponse> searchProductsByName(String name, Pageable pageable);
-    List<ProductResponse> getInStockProducts();
-    List<ProductResponse> getProductsByCategory(Long categoryId);
+    Page<ProductResponse> getInStockProducts(Pageable pageable);
+    Page<ProductResponse> getProductsByCategory(Long categoryId, Pageable pageable);
     ProductResponse getProductById(Long id);
     ProductResponse createProduct(ProductRequest request);
     ProductResponse updateProduct(Long id, ProductRequest request);

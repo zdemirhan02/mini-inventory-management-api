@@ -13,9 +13,6 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.List;
-import java.util.stream.Collectors;
-
 @Service
 public class ProductServiceImpl implements ProductService {
 
@@ -41,23 +38,17 @@ public class ProductServiceImpl implements ProductService {
 
     @Override
     @Transactional(readOnly = true)
-    public List<ProductResponse> getInStockProducts() {
-        return productRepository.findByStockQuantityGreaterThan(0)
-                .stream()
-                .map(this::mapToResponse)
-                .collect(Collectors.toList());
+    public Page<ProductResponse> getInStockProducts(Pageable pageable) {
+        return productRepository.findByStockQuantityGreaterThan(0, pageable).map(this::mapToResponse);
     }
 
     @Override
     @Transactional(readOnly = true)
-    public List<ProductResponse> getProductsByCategory(Long categoryId) {
+    public Page<ProductResponse> getProductsByCategory(Long categoryId, Pageable pageable) {
         if (!categoryRepository.existsById(categoryId)) {
             throw new ResourceNotFoundException("Kategori bulunamadı ID: " + categoryId);
         }
-        return productRepository.findByCategoryId(categoryId)
-                .stream()
-                .map(this::mapToResponse)
-                .collect(Collectors.toList());
+        return productRepository.findByCategoryId(categoryId, pageable).map(this::mapToResponse);
     }
 
     @Override

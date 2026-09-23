@@ -47,6 +47,8 @@ public class CategoryServiceImpl implements CategoryService {
         }
         Category category = new Category();
         category.setName(request.getName());
+        category.setDescription(request.getDescription());
+
         Category saved = categoryRepository.save(category);
         return mapToResponse(saved);
     }
@@ -63,6 +65,8 @@ public class CategoryServiceImpl implements CategoryService {
         }
 
         category.setName(request.getName());
+        category.setDescription(request.getDescription());
+
         Category updated = categoryRepository.save(category);
         return mapToResponse(updated);
     }
@@ -81,6 +85,7 @@ public class CategoryServiceImpl implements CategoryService {
         categoryRepository.deleteById(id);
     }
 
+    // Hocanın belirttiği düzeltme yapıldı: Sadece 2 parametreli DTO constructor'ı kullanılıyor.
     private CategoryResponse mapToResponse(Category category) {
         return new CategoryResponse(category.getId(), category.getName());
     }

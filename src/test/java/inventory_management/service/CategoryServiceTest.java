@@ -4,6 +4,7 @@ import inventory_management.dto.CategoryRequest;
 import inventory_management.dto.CategoryResponse;
 import inventory_management.model.Category;
 import inventory_management.repository.CategoryRepository;
+import inventory_management.repository.ProductRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -23,6 +24,9 @@ class CategoryServiceTest {
     @Mock
     private CategoryRepository categoryRepository;
 
+    @Mock
+    private ProductRepository productRepository;
+
     @InjectMocks
     private CategoryServiceImpl categoryService;
 
@@ -34,9 +38,11 @@ class CategoryServiceTest {
         category = new Category();
         category.setId(1L);
         category.setName("Elektronik");
+        category.setDescription("Elektronik Ürünler");
 
         categoryRequest = new CategoryRequest();
         categoryRequest.setName("Elektronik");
+        categoryRequest.setDescription("Elektronik Ürünler");
     }
 
     @Test
