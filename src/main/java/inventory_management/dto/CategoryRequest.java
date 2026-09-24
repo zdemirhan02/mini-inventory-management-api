@@ -1,15 +1,16 @@
 package inventory_management.dto;
 
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Size;
 
 public class CategoryRequest {
 
     @NotBlank(message = "Kategori adı boş olamaz")
     private String name;
 
+    @Size(max = 500, message = "Kategori açıklaması en fazla 500 karakter olabilir")
     private String description;
 
-    // Jackson'ın JSON'ı Java nesnesine çevirmesi için bu ŞART:
     public CategoryRequest() {
     }
 

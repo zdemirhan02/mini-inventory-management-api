@@ -85,8 +85,11 @@ public class CategoryServiceImpl implements CategoryService {
         categoryRepository.deleteById(id);
     }
 
-    // Hocanın belirttiği düzeltme yapıldı: Sadece 2 parametreli DTO constructor'ı kullanılıyor.
     private CategoryResponse mapToResponse(Category category) {
-        return new CategoryResponse(category.getId(), category.getName());
+        return new CategoryResponse(
+                category.getId(),
+                category.getName(),
+                category.getDescription()
+        );
     }
 }

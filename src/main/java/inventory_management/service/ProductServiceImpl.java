@@ -109,7 +109,8 @@ public class ProductServiceImpl implements ProductService {
         if (product.getCategory() != null) {
             categoryResponse = new CategoryResponse(
                     product.getCategory().getId(),
-                    product.getCategory().getName()
+                    product.getCategory().getName(),
+                    product.getCategory().getDescription()
             );
         }
 
